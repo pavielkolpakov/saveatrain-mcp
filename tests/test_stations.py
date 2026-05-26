@@ -104,3 +104,11 @@ async def test_search_respects_limit():
     p = search_names.last_pipeline
     limit_stage = next(s["$limit"] for s in p if "$limit" in s)
     assert limit_stage == 3
+
+
+async def test_search_uses_language_id_for_french():
+    repo, search_names = _repo_with([])
+    await repo.search("Par", lang="fr")
+    p = search_names.last_pipeline
+    flt = p[0]["$search"]["compound"]["filter"]
+    assert flt[0]["equals"] == {"path": "language_id", "value": 4}

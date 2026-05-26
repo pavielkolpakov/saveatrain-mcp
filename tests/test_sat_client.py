@@ -126,3 +126,52 @@ async def test_healthz_raises_upstream_on_non_2xx():
     async with _client(handler) as c:
         with pytest.raises(SATUpstreamError):
             await c.healthz()
+
+
+async def test_post_searches_sends_json_and_returns_payload():
+    captured = {}
+
+    def handler(req):
+        captured["method"] = req.method
+        captured["url"] = str(req.url)
+        captured["body"] = req.content
+        return httpx.Response(200, json={"identifier": "abc123", "results": []})
+
+    async with _client(handler) as c:
+        result = await c.request("POST", "/api/v1/searches", json={"search": {}})
+
+    assert captured["method"] == "POST"
+    assert captured["url"].endswith("/api/v1/searches")
+    assert result["identifier"] == "abc123"
+
+
+async def test_get_sub_routes_returns_payload():
+    def handler(req):
+        assert req.method == "GET"
+        assert "/searches/abc/results/777/sub_routes" in str(req.url)
+        return httpx.Response(200, json={"status": "success", "data": {"legs": []}})
+
+    async with _client(handler) as c:
+        result = await c.request("GET", "/api/v1/searches/abc/results/777/sub_routes")
+
+    assert result == {"status": "success", "data": {"legs": []}}
+
+
+async def test_get_sub_routes_404_raises_not_found():
+    def handler(req):
+        return httpx.Response(404, json={"errors": "not found"})
+
+    async with _client(handler) as c:
+        with pytest.raises(SATNotFoundError):
+            await c.request("GET", "/api/v1/searches/abc/results/777/sub_routes")
+
+
+async def test_get_tariff_conditions_returns_payload():
+    def handler(req):
+        assert "/tariff_conditions/99" in str(req.url)
+        return httpx.Response(200, json={"conditions": "non-refundable"})
+
+    async with _client(handler) as c:
+        result = await c.request("GET", "/api/v1/searches/abc/results/777/tariff_conditions/99")
+
+    assert result == {"conditions": "non-refundable"}

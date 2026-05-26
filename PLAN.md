@@ -92,11 +92,11 @@ Collections (hard-coded, schema mirrored from `sat-client-app`): `station_search
 - [ ] Stub `ping` tool returning `"ok"` for end-to-end verification via MCP Inspector / Claude Desktop
 
 ### Phase 2 - Core Tools
-- [ ] `search_stations` tool + pydantic schema; returns `[{uid, name, country, ...}]`
-- [ ] `search_trains` tool: build `search[...]` nested params, POST `/api/v1/searches`, return identifier + condensed results
-- [ ] `get_sub_routes` tool: GET, return legs/transfers/fares
-- [ ] `get_tariff_conditions` tool
-- [ ] Unit tests w/ httpx mock + Mongo test double
+- [x] `search_stations` tool + pydantic schema; returns `[{uid, name, country, ...}]`
+- [x] `search_trains` tool: build `search[...]` nested params, POST `/api/v1/searches`, return identifier + condensed results
+- [x] `get_sub_routes` tool: GET, return legs/transfers/fares
+- [x] `get_tariff_conditions` tool
+- [x] Unit tests w/ httpx mock + Mongo test double
 
 ### Phase 3 - Polish & Launch
 - [ ] README: install, env setup, Claude Desktop config snippet, HTTP deploy notes

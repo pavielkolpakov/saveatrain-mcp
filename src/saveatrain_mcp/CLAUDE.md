@@ -1,6 +1,6 @@
 # `saveatrain_mcp` package - working notes
 
-Six modules, each does one thing. Below: contract + invariants for each.
+Seven modules, each does one thing. Below: contract + invariants for each.
 Update this file when adding/removing modules or changing public surface.
 
 ## `config.py` - `Settings`
@@ -51,12 +51,25 @@ All consumers should catch these by base class (`SATError`) when generic, or spe
 - **Atlas Search is required.** Self-hosted Mongo without Atlas Search will not work - the `$search` stage is provider-specific.
 - `ping()` runs `db.command("ping")` - cheap, used at startup.
 
-## `server.py` - FastMCP wiring
+## `models.py` - pydantic I/O models + builders
+- `Passenger(type, age?)` - input model for search. `type` is `Literal["adult","youth","senior","child","infant"]`.
+- `TrainResult`, `SearchTrainsResponse` - output models for `search_trains` (trims raw SAT response).
+- `build_passengers_attributes(passengers)` - maps `Passenger` list to SAT's nested `searches_passengers_attributes` format.
+- `build_search_params(...)` - builds the full `POST /api/v1/searches` JSON body. Formats `datetime` to `"%Y-%m-%d %H:%M"`.
+- `parse_search_response(raw)` - trims SAT search response to `SearchTrainsResponse` (drops route, pagination flags, per-result `selected`/`identifier`).
+
+## `server.py` - FastMCP wiring + tools
 - `mcp = FastMCP("saveatrain-mcp", lifespan=lifespan)` - module-level singleton.
 - `lifespan(app)` (async context manager) owns the SAT client + stations repo, calls `startup_check`, yields a dict context, closes both on shutdown.
 - **`startup_check(sat, stations)` is the testable seam** - pings Mongo first (cheaper), then SAT `/healthz`. Tests inject fakes; don't add startup work in the lifespan body without also exposing it here.
-- `@mcp.tool def ping() -> str` - smoke test tool, returns `"ok"`. Keep it; useful for verifying MCP wiring from Claude Desktop / Inspector without hitting upstream.
-- Phase 2 tools will register against the same `mcp` instance; pull dependencies from `ctx.request_context.lifespan_context` rather than module globals.
+- `_get_sat(ctx)` / `_get_stations(ctx)` - typed helpers to pull deps from `ctx.lifespan_context`.
+- **Tools** (all registered on `mcp`):
+  - `ping()` - smoke test, returns `"ok"`.
+  - `search_stations(query, ctx, limit=10, lang="en")` - Mongo autocomplete via `StationsRepo`.
+  - `search_trains(origin_uid, destination_uid, departure_datetime, passengers, ctx, return_datetime?)` - POST `/api/v1/searches`, returns trimmed `SearchTrainsResponse`.
+  - `get_sub_routes(search_identifier, result_id, ctx)` - GET sub_routes, passes through full response.
+  - `get_tariff_conditions(search_identifier, result_id, result_fare_id, ctx)` - GET tariff_conditions, passes through full response.
+- **Error handling in tools:** known `SATError` subclasses caught and returned as `{"ok": False, "error": "..."}`. `search_stations` catches all exceptions (Mongo errors aren't `SATError`). Unknown exceptions propagate.
 
 ## `__main__.py` - CLI
 - Single entry point `saveatrain-mcp` (declared in `pyproject.toml`).

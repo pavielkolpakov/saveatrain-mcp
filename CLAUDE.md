@@ -5,8 +5,9 @@ MCP server wrapping the Save a Train (SAT) vendor API. Python 3.12.2+, FastMCP 3
 See `PLAN.md` for scope, phases, and locked decisions. See `mcp.md` for the upstream API reference (auth headers, endpoints, payload shapes).
 
 ## Status
-- **Phase 1 (Foundation): done.** Config, error mapping, SAT client, stations repo, FastMCP skeleton with `ping` tool, 21 tests.
-- **Phase 2 (Tools): not started.** Will add `search_stations`, `search_trains`, `get_sub_routes`, `get_tariff_conditions`.
+- **Phase 1 (Foundation): done.** Config, error mapping, SAT client, stations repo, FastMCP skeleton with `ping` tool.
+- **Phase 2 (Tools): done.** `search_stations`, `search_trains`, `get_sub_routes`, `get_tariff_conditions` + pydantic models. 45 tests.
+- **Phase 3 (Polish & Launch): not started.** README, Dockerfile, smoke test, v0.1.0 tag.
 
 ## Layout
 ```
@@ -15,9 +16,10 @@ src/saveatrain_mcp/
   __main__.py       argparse entry point (stdio | --http)
   config.py         pydantic-settings Settings (hard-fail)
   errors.py         typed SAT exceptions
+  models.py         pydantic I/O models + SAT param builders
   sat_client.py     httpx wrapper + error mapping + /healthz
   stations.py       motor + Atlas Search aggregation pipeline
-  server.py         FastMCP instance, lifespan, startup_check, ping tool
+  server.py         FastMCP instance, lifespan, startup_check, 5 tools
 tests/              pytest, asyncio_mode=auto
 ```
 
