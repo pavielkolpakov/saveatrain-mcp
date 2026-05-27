@@ -6,7 +6,7 @@ Update this file when adding/removing modules or changing public surface.
 ## `config.py` - `Settings`
 - `pydantic-settings` `BaseSettings`. Loads from env, then `.env` (path overridable via `SAT_MCP_ENV_FILE`).
 - **Required:** `SAT_API_BASE_URL` (HttpUrl), `SAT_AGENT_EMAIL`, `SAT_AGENT_TOKEN` (SecretStr), `SAT_FORWARDED_FOR`, `MONGO_URI`.
-- **Optional:** `MONGO_DB` (default `"sat"`).
+- **Optional:** `MONGO_DB` (default `"sat"`), `HOST` (default `"127.0.0.1"`), `PORT` (default `8000`).
 - Construction with missing required vars raises `ValidationError` listing all of them - tested in `tests/test_config.py`. Don't add lazy/default fallbacks for required vars.
 - Case-insensitive env lookup. `extra="ignore"` so other env vars don't break.
 
@@ -23,7 +23,7 @@ SATError
 All consumers should catch these by base class (`SATError`) when generic, or specific class when reacting differently. Add new subclasses here, never inline new exception types in clients.
 
 ## `sat_client.py` - `SATClient`
-- Two `httpx.AsyncClient`s under the hood: one carries default auth headers for `/api/v1/*`, one is bare for `/healthz` (unauthenticated upstream).
+- Two `httpx.AsyncClient`s under the hood: one carries default auth headers for `/api/*`, one is bare for `/healthz` (unauthenticated upstream).
 - Construct with explicit kwargs (`base_url`, `agent_email`, `agent_token`, `forwarded_for`, optional `transport` for tests). Don't pass `Settings` directly - keeps the unit tests config-free.
 - `await client.request(method, path, **httpx_kwargs)` - returns dict. Error mapping:
   | status | behavior |
@@ -55,7 +55,7 @@ All consumers should catch these by base class (`SATError`) when generic, or spe
 - `Passenger(type, age?)` - input model for search. `type` is `Literal["adult","youth","senior","child","infant"]`.
 - `TrainResult`, `SearchTrainsResponse` - output models for `search_trains` (trims raw SAT response).
 - `build_passengers_attributes(passengers)` - maps `Passenger` list to SAT's nested `searches_passengers_attributes` format.
-- `build_search_params(...)` - builds the full `POST /api/v1/searches` JSON body. Formats `datetime` to `"%Y-%m-%d %H:%M"`.
+- `build_search_params(...)` - builds the full `POST /api/searches` JSON body. Formats `datetime` to `"%Y-%m-%d %H:%M"`.
 - `parse_search_response(raw)` - trims SAT search response to `SearchTrainsResponse` (drops route, pagination flags, per-result `selected`/`identifier`).
 
 ## `server.py` - FastMCP wiring + tools
@@ -66,7 +66,7 @@ All consumers should catch these by base class (`SATError`) when generic, or spe
 - **Tools** (all registered on `mcp`):
   - `ping()` - smoke test, returns `"ok"`.
   - `search_stations(query, ctx, limit=10, lang="en")` - Mongo autocomplete via `StationsRepo`.
-  - `search_trains(origin_uid, destination_uid, departure_datetime, passengers, ctx, return_datetime?)` - POST `/api/v1/searches`, returns trimmed `SearchTrainsResponse`.
+  - `search_trains(origin_uid, destination_uid, departure_datetime, passengers, ctx, return_datetime?)` - POST `/api/searches`, returns trimmed `SearchTrainsResponse`.
   - `get_sub_routes(search_identifier, result_id, ctx)` - GET sub_routes, passes through full response.
   - `get_tariff_conditions(search_identifier, result_id, result_fare_id, ctx)` - GET tariff_conditions, passes through full response.
 - **Error handling in tools:** known `SATError` subclasses caught and returned as `{"ok": False, "error": "..."}`. `search_stations` catches all exceptions (Mongo errors aren't `SATError`). Unknown exceptions propagate.
@@ -74,4 +74,5 @@ All consumers should catch these by base class (`SATError`) when generic, or spe
 ## `__main__.py` - CLI
 - Single entry point `saveatrain-mcp` (declared in `pyproject.toml`).
 - `--http` switches to HTTP transport (default stdio). `--host/--port` only meaningful with `--http`.
+- `--host` and `--port` default to `HOST`/`PORT` env vars (falling back to `127.0.0.1`/`8000`). This lets Docker and Railway set bind address via env without CLI flags.
 - Don't add config reading here - it's done lazily inside `lifespan()` so missing env doesn't crash before FastMCP's logging is up.

@@ -5,7 +5,7 @@ MCP server wrapping the Save a Train (SAT) vendor API so LLM agents can search t
 
 ## MVP Features
 - `search_stations(query, limit?)` - autocomplete against Mongo, returns station UID + display info
-- `search_trains(origin_uid, destination_uid, departure_datetime, return_datetime?, passengers[])` - POST `/api/v1/searches`, returns search identifier + result list
+- `search_trains(origin_uid, destination_uid, departure_datetime, return_datetime?, passengers[])` - POST `/api/searches`, returns search identifier + result list
 - `get_sub_routes(search_identifier, result_id)` - GET `.../sub_routes`, returns legs/transfers/fares
 - `get_tariff_conditions(search_identifier, result_id, result_fare_id)` - GET `.../tariff_conditions/{id}`, returns cancel/exchange rules
 - Both transports: stdio (Claude Desktop / Code) and HTTP/SSE (remote)
@@ -42,7 +42,7 @@ MCP server wrapping the Save a Train (SAT) vendor API so LLM agents can search t
                           ▼                                 ▼
                 ┌──────────────────┐              ┌──────────────────┐
                 │  SAT vendor API  │              │   MongoDB        │
-                │  /api/v1/*       │              │  stations coll.  │
+                │  /api/*       │              │  stations coll.  │
                 │  (httpx + token) │              │  (motor)         │
                 └──────────────────┘              └──────────────────┘
 ```
@@ -93,7 +93,7 @@ Collections (hard-coded, schema mirrored from `sat-client-app`): `station_search
 
 ### Phase 2 - Core Tools
 - [x] `search_stations` tool + pydantic schema; returns `[{uid, name, country, ...}]`
-- [x] `search_trains` tool: build `search[...]` nested params, POST `/api/v1/searches`, return identifier + condensed results
+- [x] `search_trains` tool: build `search[...]` nested params, POST `/api/searches`, return identifier + condensed results
 - [x] `get_sub_routes` tool: GET, return legs/transfers/fares
 - [x] `get_tariff_conditions` tool
 - [x] Unit tests w/ httpx mock + Mongo test double

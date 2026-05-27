@@ -7,13 +7,13 @@ See `PLAN.md` for scope, phases, and locked decisions. See `mcp.md` for the upst
 ## Status
 - **Phase 1 (Foundation): done.** Config, error mapping, SAT client, stations repo, FastMCP skeleton with `ping` tool.
 - **Phase 2 (Tools): done.** `search_stations`, `search_trains`, `get_sub_routes`, `get_tariff_conditions` + pydantic models. 45 tests.
-- **Phase 3 (Polish & Launch): not started.** README, Dockerfile, smoke test, v0.1.0 tag.
+- **Phase 3 (Polish & Launch): done.** README rewrite, Dockerfile (multi-stage), railway.toml, .dockerignore, HOST/PORT env vars, v0.1.0 tag.
 
 ## Layout
 ```
 src/saveatrain_mcp/
   __init__.py       re-exports mcp
-  __main__.py       argparse entry point (stdio | --http)
+  __main__.py       argparse entry point (stdio | --http), HOST/PORT from env
   config.py         pydantic-settings Settings (hard-fail)
   errors.py         typed SAT exceptions
   models.py         pydantic I/O models + SAT param builders
@@ -21,6 +21,8 @@ src/saveatrain_mcp/
   stations.py       motor + Atlas Search aggregation pipeline
   server.py         FastMCP instance, lifespan, startup_check, 5 tools
 tests/              pytest, asyncio_mode=auto
+Dockerfile          multi-stage (uv build + slim runtime)
+railway.toml        Railway deploy config
 ```
 
 Each subdir has its own `CLAUDE.md` with details specific to that module.

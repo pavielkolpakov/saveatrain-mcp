@@ -2,13 +2,13 @@
 
 Reference doc for building an MCP server that wraps the SAT Rails vendor API so LLM agents can search trains, build bookings, confirm payments via natural language.
 
-All endpoints under `/api/v1/`. JSON in/out. Token auth via headers.
+All endpoints under `/api/`. JSON in/out. Token auth via headers.
 
 ---
 
 ## 1. Authentication
 
-All API calls run `authenticate_agent!` in `app/controllers/api/v1/base_controller.rb:16-35`.
+All API calls run `authenticate_agent!` in `app/controllers/api/base_controller.rb:16-35`.
 
 **Required headers on every request:**
 - `X-Agent-Email` - sales agent email
@@ -25,13 +25,13 @@ Auth validates: agent active, token valid/unexpired, IP whitelisted, request dom
 
 | # | Method | Path | Controller#action | Purpose |
 |---|--------|------|-------------------|---------|
-| 1 | POST | `/api/v1/searches` | `SearchesController#create` | Create search, fetch outbound results |
-| 2 | POST | `/api/v1/searches/{identifier}/inbound_search` | `SearchesController#inbound_search` | Fetch inbound results (round trip) |
-| 3 | GET  | `/api/v1/searches/{identifier}/results/{id}/sub_routes` | `Searches::ResultsController#sub_routes` | Legs/transfers/fares for a result |
-| 4 | GET  | `/api/v1/searches/{identifier}/results/{id}/tariff_conditions/{result_fare_id}` | `Searches::ResultsController#tariff_conditions` | Cancellation/exchange rules |
-| 5 | POST | `/api/v1/searches/{identifier}/confirm_selection` | `SearchesController#confirm_selection` | Lock outbound/inbound, returns seat opts + required booking fields |
-| 6 | POST | `/api/v1/bookings` | `BookingsController#create` | Build booking w/ passengers, returns total price |
-| 7 | POST | `/api/v1/bookings/confirm` | `BookingsController#confirm` | Finalize w/ provider, returns PNR |
+| 1 | POST | `/api/searches` | `SearchesController#create` | Create search, fetch outbound results |
+| 2 | POST | `/api/searches/{identifier}/inbound_search` | `SearchesController#inbound_search` | Fetch inbound results (round trip) |
+| 3 | GET  | `/api/searches/{identifier}/results/{id}/sub_routes` | `Searches::ResultsController#sub_routes` | Legs/transfers/fares for a result |
+| 4 | GET  | `/api/searches/{identifier}/results/{id}/tariff_conditions/{result_fare_id}` | `Searches::ResultsController#tariff_conditions` | Cancellation/exchange rules |
+| 5 | POST | `/api/searches/{identifier}/confirm_selection` | `SearchesController#confirm_selection` | Lock outbound/inbound, returns seat opts + required booking fields |
+| 6 | POST | `/api/bookings` | `BookingsController#create` | Build booking w/ passengers, returns total price |
+| 7 | POST | `/api/bookings/confirm` | `BookingsController#confirm` | Finalize w/ provider, returns PNR |
 
 Routes file: `config/routes.rb:29-44`.
 
@@ -40,48 +40,48 @@ Routes file: `config/routes.rb:29-44`.
 ## 3. Supporting Endpoints
 
 ### Search helpers
-- `POST /api/v1/searches/new_outbound_results` - paginate earlier/later outbound (`SearchesController#new_outbound_results`, routes.rb:36)
-- `POST /api/v1/searches/new_inbound_results` - same for inbound (routes.rb:37)
-- `POST /api/v1/searches/origin_and_destination_search` - station autocomplete (`searches_controller.rb:26-35`)
-- `POST /api/v1/searches/popular_routes` - trending routes (`searches_controller.rb:37-46`)
-- `GET  /api/v1/vendor_stations` - all searchable stations (`vendor_stations_controller.rb:1-12`)
-- `POST /api/v1/routes/valid` - validate route exists (routes.rb:30)
-- `GET  /api/v1/routes/valid` - routes with historic results (routes.rb:31)
-- `GET  /api/v1/fare_class_mapper` - map provider fare names to standard classes (routes.rb:32)
-- `GET  /api/v1/reduction_codes` - list discount codes (routes.rb:84)
-- `GET  /api/v1/bookings/currencys` - supported currencies (routes.rb:42)
+- `POST /api/searches/new_outbound_results` - paginate earlier/later outbound (`SearchesController#new_outbound_results`, routes.rb:36)
+- `POST /api/searches/new_inbound_results` - same for inbound (routes.rb:37)
+- `POST /api/searches/origin_and_destination_search` - station autocomplete (`searches_controller.rb:26-35`)
+- `POST /api/searches/popular_routes` - trending routes (`searches_controller.rb:37-46`)
+- `GET  /api/vendor_stations` - all searchable stations (`vendor_stations_controller.rb:1-12`)
+- `POST /api/routes/valid` - validate route exists (routes.rb:30)
+- `GET  /api/routes/valid` - routes with historic results (routes.rb:31)
+- `GET  /api/fare_class_mapper` - map provider fare names to standard classes (routes.rb:32)
+- `GET  /api/reduction_codes` - list discount codes (routes.rb:84)
+- `GET  /api/bookings/currencys` - supported currencies (routes.rb:42)
 
 ### Post-booking
-- `GET  /api/v1/bookings/{id}` - retrieve order by search identifier
-- `POST /api/v1/order_info` - full order details by identifier + email (`order_info_controller.rb`)
-- `GET  /api/v1/bookings/{id}/image` - confirmation image
-- `POST /api/v1/bookings/{id}/apply_voucher/{voucher_code}` - apply discount
-- `POST /api/v1/bookings/{id}/additional_params` - provider-specific extras
-- `POST /api/v1/bookings/submit_payment` - Adyen payment
-- `POST /api/v1/bookings/change_traveller` - update passenger details
-- `POST /api/v1/manage_bookings` - legacy order lookup
+- `GET  /api/bookings/{id}` - retrieve order by search identifier
+- `POST /api/order_info` - full order details by identifier + email (`order_info_controller.rb`)
+- `GET  /api/bookings/{id}/image` - confirmation image
+- `POST /api/bookings/{id}/apply_voucher/{voucher_code}` - apply discount
+- `POST /api/bookings/{id}/additional_params` - provider-specific extras
+- `POST /api/bookings/submit_payment` - Adyen payment
+- `POST /api/bookings/change_traveller` - update passenger details
+- `POST /api/manage_bookings` - legacy order lookup
 
 ### Cancellation
-- `POST /api/v1/bookings/cancellation` - initiate refund
-- `POST /api/v1/bookings/confirm_cancellation` - confirm refund
+- `POST /api/bookings/cancellation` - initiate refund
+- `POST /api/bookings/confirm_cancellation` - confirm refund
 
 ### Fare change (modify existing booking)
-- `POST /api/v1/bookings/fare_change_search`
-- `POST /api/v1/bookings/fare_change_inbound_search`
-- `POST /api/v1/bookings/fare_change_select`
-- `POST /api/v1/bookings/fare_change_confirm`
+- `POST /api/bookings/fare_change_search`
+- `POST /api/bookings/fare_change_inbound_search`
+- `POST /api/bookings/fare_change_select`
+- `POST /api/bookings/fare_change_confirm`
 
 ### Station change
-- `POST /api/v1/bookings/station_change_search`
-- `POST /api/v1/bookings/station_change_inbound`
-- `POST /api/v1/bookings/station_change_select`
-- `POST /api/v1/bookings/station_change_confirm`
+- `POST /api/bookings/station_change_search`
+- `POST /api/bookings/station_change_inbound`
+- `POST /api/bookings/station_change_select`
+- `POST /api/bookings/station_change_confirm`
 
 ---
 
 ## 4. Request/Response Shapes
 
-### POST /api/v1/searches
+### POST /api/searches
 Params (`searches_controller.rb:90-108`):
 ```json
 {
@@ -126,7 +126,7 @@ Response (`search_serializer.rb:1-58`):
 }
 ```
 
-### POST /api/v1/searches/{identifier}/confirm_selection
+### POST /api/searches/{identifier}/confirm_selection
 Params (`searches_controller.rb:111-120`):
 ```json
 {
@@ -160,7 +160,7 @@ Response (`confirm_selection_serializer.rb:1-52`):
 }
 ```
 
-### POST /api/v1/bookings
+### POST /api/bookings
 Params (`bookings_controller.rb:244-280`):
 ```json
 {
@@ -202,7 +202,7 @@ Response (`order_summary_serializer.rb:1-86`):
 }
 ```
 
-### POST /api/v1/bookings/confirm
+### POST /api/bookings/confirm
 Params (`bookings_controller.rb:283-288`):
 ```json
 { "booking": { "search_identifier": "vAa4xK", "affiliate_id": "partner123" } }
@@ -221,7 +221,7 @@ Response (`booking_confirmation_serializer.rb`):
 }
 ```
 
-### GET /api/v1/searches/{id}/results/{rid}/sub_routes
+### GET /api/searches/{id}/results/{rid}/sub_routes
 Response (sample `spec/support/api/files/nsi_sub_routes_response.json:1-126`):
 ```json
 {
@@ -244,7 +244,7 @@ Response (sample `spec/support/api/files/nsi_sub_routes_response.json:1-126`):
 }
 ```
 
-### POST /api/v1/order_info
+### POST /api/order_info
 Response (`order_info_controller.rb:80-101`):
 ```json
 {
@@ -268,7 +268,7 @@ Response (`order_info_controller.rb:80-101`):
 }
 ```
 
-### GET /api/v1/vendor_stations
+### GET /api/vendor_stations
 ```json
 [
   {
@@ -386,11 +386,11 @@ Map endpoints to MCP tools agents can call:
 ## 10. Files to Reference
 
 - Routes: `config/routes.rb`
-- Auth: `app/controllers/api/v1/base_controller.rb`
-- Search controller: `app/controllers/api/v1/searches_controller.rb`
-- Bookings controller: `app/controllers/api/v1/bookings_controller.rb`
-- Order info: `app/controllers/api/v1/order_info_controller.rb`
-- Serializers: `app/serializers/api/v1/`
+- Auth: `app/controllers/api/base_controller.rb`
+- Search controller: `app/controllers/api/searches_controller.rb`
+- Bookings controller: `app/controllers/api/bookings_controller.rb`
+- Order info: `app/controllers/api/order_info_controller.rb`
+- Serializers: `app/serializers/api/`
 - Sample responses: `spec/support/api/files/`
 - Provider routing logic: `app/operators/operation_process/bookings_management.rb`
 - Project conventions: `CLAUDE.md`, `app/controllers/CLAUDE.md`, `app/operators/operation_process/CLAUDE.md`

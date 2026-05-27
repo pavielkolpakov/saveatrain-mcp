@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "saveatrain": {
+        "command": "uv",
+        "args": ["run", "--directory", "/Users/paulokolpakov/Documents/SAT/saveatrain-mcp", "python", "-m", "saveatrain_mcp"],
+        "env": {
+          "SAT_MCP_ENV_FILE": "/Users/paulokolpakov/Documents/SAT/saveatrain-mcp/.env"
+        }
+      }
+  }
+}

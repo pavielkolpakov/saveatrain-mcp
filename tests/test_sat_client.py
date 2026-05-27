@@ -26,7 +26,7 @@ async def test_returns_payload_on_2xx():
         return httpx.Response(200, json={"hello": "world"})
 
     async with _client(handler) as c:
-        result = await c.request("GET", "/api/v1/anything")
+        result = await c.request("GET", "/api/anything")
     assert result == {"hello": "world"}
 
 
@@ -38,7 +38,7 @@ async def test_sends_auth_headers():
         return httpx.Response(200, json={})
 
     async with _client(handler) as c:
-        await c.request("GET", "/api/v1/anything")
+        await c.request("GET", "/api/anything")
 
     h = captured["headers"]
     assert h["X-Agent-Email"] == "agent@example.com"
@@ -52,7 +52,7 @@ async def test_returns_structured_error_on_422():
         return httpx.Response(422, json={"errors": {"origin": ["is required"]}})
 
     async with _client(handler) as c:
-        result = await c.request("POST", "/api/v1/searches", json={})
+        result = await c.request("POST", "/api/searches", json={})
 
     assert result == {
         "ok": False,
@@ -71,7 +71,7 @@ async def test_raises_auth_error(status):
 
     async with _client(handler) as c:
         with pytest.raises(SATAuthError):
-            await c.request("GET", "/api/v1/anything")
+            await c.request("GET", "/api/anything")
 
 
 async def test_raises_not_found_on_404():
@@ -80,7 +80,7 @@ async def test_raises_not_found_on_404():
 
     async with _client(handler) as c:
         with pytest.raises(SATNotFoundError):
-            await c.request("GET", "/api/v1/anything")
+            await c.request("GET", "/api/anything")
 
 
 @pytest.mark.parametrize("status", [500, 502, 503])
@@ -90,7 +90,7 @@ async def test_raises_upstream_on_5xx(status):
 
     async with _client(handler) as c:
         with pytest.raises(SATUpstreamError):
-            await c.request("GET", "/api/v1/anything")
+            await c.request("GET", "/api/anything")
 
 
 async def test_raises_timeout():
@@ -99,7 +99,7 @@ async def test_raises_timeout():
 
     async with _client(handler) as c:
         with pytest.raises(SATTimeoutError):
-            await c.request("GET", "/api/v1/anything")
+            await c.request("GET", "/api/anything")
 
 
 async def test_healthz_no_auth_needed():
@@ -138,10 +138,10 @@ async def test_post_searches_sends_json_and_returns_payload():
         return httpx.Response(200, json={"identifier": "abc123", "results": []})
 
     async with _client(handler) as c:
-        result = await c.request("POST", "/api/v1/searches", json={"search": {}})
+        result = await c.request("POST", "/api/searches", json={"search": {}})
 
     assert captured["method"] == "POST"
-    assert captured["url"].endswith("/api/v1/searches")
+    assert captured["url"].endswith("/api/searches")
     assert result["identifier"] == "abc123"
 
 
@@ -152,7 +152,7 @@ async def test_get_sub_routes_returns_payload():
         return httpx.Response(200, json={"status": "success", "data": {"legs": []}})
 
     async with _client(handler) as c:
-        result = await c.request("GET", "/api/v1/searches/abc/results/777/sub_routes")
+        result = await c.request("GET", "/api/searches/abc/results/777/sub_routes")
 
     assert result == {"status": "success", "data": {"legs": []}}
 
@@ -163,7 +163,7 @@ async def test_get_sub_routes_404_raises_not_found():
 
     async with _client(handler) as c:
         with pytest.raises(SATNotFoundError):
-            await c.request("GET", "/api/v1/searches/abc/results/777/sub_routes")
+            await c.request("GET", "/api/searches/abc/results/777/sub_routes")
 
 
 async def test_get_tariff_conditions_returns_payload():
@@ -172,6 +172,6 @@ async def test_get_tariff_conditions_returns_payload():
         return httpx.Response(200, json={"conditions": "non-refundable"})
 
     async with _client(handler) as c:
-        result = await c.request("GET", "/api/v1/searches/abc/results/777/tariff_conditions/99")
+        result = await c.request("GET", "/api/searches/abc/results/777/tariff_conditions/99")
 
     assert result == {"conditions": "non-refundable"}

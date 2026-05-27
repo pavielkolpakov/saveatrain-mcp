@@ -81,12 +81,11 @@ def build_search_params(
 ) -> dict[str, Any]:
     search: dict[str, Any] = {
         "departure_datetime": _format_dt(departure_datetime),
+        "return_departure_datetime": _format_dt(return_datetime) if return_datetime else None,
         "route_attributes": {
             "origin_station_attributes": {"uid": origin_uid},
             "destination_station_attributes": {"uid": destination_uid},
         },
         "searches_passengers_attributes": build_passengers_attributes(passengers),
     }
-    if return_datetime:
-        search["return_departure_datetime"] = _format_dt(return_datetime)
     return {"search": search}

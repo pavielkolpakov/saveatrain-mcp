@@ -167,7 +167,7 @@ async def test_search_trains_posts_and_returns_trimmed():
 
     method, path, kwargs = sat.last_request
     assert method == "POST"
-    assert path == "/api/v1/searches"
+    assert path == "/api/searches"
 
 
 async def test_search_trains_passes_through_422():
@@ -213,7 +213,7 @@ async def test_get_sub_routes_returns_full_payload():
     assert result == payload
     method, path, _ = sat.last_request
     assert method == "GET"
-    assert path == "/api/v1/searches/abc/results/777/sub_routes"
+    assert path == "/api/searches/abc/results/777/sub_routes"
 
 
 async def test_get_sub_routes_returns_error_on_not_found():
@@ -237,7 +237,7 @@ async def test_get_tariff_conditions_returns_full_payload():
     assert result == payload
     method, path, _ = sat.last_request
     assert method == "GET"
-    assert path == "/api/v1/searches/abc/results/777/tariff_conditions/99"
+    assert path == "/api/searches/abc/results/777/tariff_conditions/99"
 
 
 async def test_get_tariff_conditions_returns_error_on_not_found():
