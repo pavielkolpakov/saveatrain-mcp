@@ -66,7 +66,7 @@ All consumers should catch these by base class (`SATError`) when generic, or spe
 - **Tools** (all registered on `mcp`):
   - `ping()` - smoke test, returns `"ok"`.
   - `search_stations(query, ctx, limit=10, lang="en")` - Mongo autocomplete via `StationsRepo`.
-  - `search_trains(origin_uid, destination_uid, departure_datetime, passengers, ctx, return_datetime?)` - POST `/api/searches`, returns trimmed `SearchTrainsResponse`.
+  - `search_trains(origin_uid, destination_uid, departure_datetime, passengers, ctx)` - POST `/api/searches`, one-way only, returns trimmed `SearchTrainsResponse`.
   - `get_sub_routes(search_identifier, result_id, ctx)` - GET sub_routes, passes through full response.
   - `get_tariff_conditions(search_identifier, result_id, result_fare_id, ctx)` - GET tariff_conditions, passes through full response.
 - **Error handling in tools:** known `SATError` subclasses caught and returned as `{"ok": False, "error": "..."}`. `search_stations` catches all exceptions (Mongo errors aren't `SATError`). Unknown exceptions propagate.

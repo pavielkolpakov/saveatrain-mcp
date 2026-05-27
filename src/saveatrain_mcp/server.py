@@ -86,9 +86,8 @@ async def search_trains(
     departure_datetime: datetime,
     passengers: list[Passenger],
     ctx: Context,
-    return_datetime: datetime | None = None,
 ) -> dict[str, Any]:
-    """Search for train connections between two stations. Accepts ISO 8601 datetimes.
+    """Search for one-way train connections between two stations. Accepts ISO 8601 datetimes.
     Returns a search identifier (needed for sub_routes/tariff_conditions) and a list of
     results with departure/arrival times, duration, price, and provider. Searches expire
     after ~30 minutes."""
@@ -98,7 +97,6 @@ async def search_trains(
             origin_uid=origin_uid,
             destination_uid=destination_uid,
             departure_datetime=departure_datetime,
-            return_datetime=return_datetime,
             passengers=passengers,
         )
         raw = await sat.request("POST", "/api/searches", json=params)

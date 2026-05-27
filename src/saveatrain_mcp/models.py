@@ -76,16 +76,15 @@ def build_search_params(
     origin_uid: str,
     destination_uid: str,
     departure_datetime: datetime,
-    return_datetime: datetime | None,
     passengers: list[Passenger],
 ) -> dict[str, Any]:
     search: dict[str, Any] = {
         "departure_datetime": _format_dt(departure_datetime),
-        "return_departure_datetime": _format_dt(return_datetime) if return_datetime else None,
         "route_attributes": {
             "origin_station_attributes": {"uid": origin_uid},
             "destination_station_attributes": {"uid": destination_uid},
         },
         "searches_passengers_attributes": build_passengers_attributes(passengers),
     }
+
     return {"search": search}

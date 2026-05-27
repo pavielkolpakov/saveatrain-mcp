@@ -125,7 +125,6 @@ SEARCH_RESPONSE = {
     "expiration_time_left": 1800,
     "route": {},
     "departure_datetime": "2025-03-12 10:00",
-    "return_departure_datetime": None,
     "is_beginning": True,
     "is_ending": False,
     "results": [

@@ -58,13 +58,11 @@ def test_build_search_params_one_way():
         origin_uid="SAT_OXQJY",
         destination_uid="SAT_OTWZL",
         departure_datetime=datetime(2025, 3, 12, 10, 0),
-        return_datetime=None,
         passengers=[Passenger(type="adult")],
     )
     assert params == {
         "search": {
             "departure_datetime": "2025-03-12 10:00",
-            "return_departure_datetime": None,
             "route_attributes": {
                 "origin_station_attributes": {"uid": "SAT_OXQJY"},
                 "destination_station_attributes": {"uid": "SAT_OTWZL"},
@@ -77,19 +75,7 @@ def test_build_search_params_one_way():
             },
         }
     }
-
-
-def test_build_search_params_round_trip():
-    params = build_search_params(
-        origin_uid="SAT_OXQJY",
-        destination_uid="SAT_OTWZL",
-        departure_datetime=datetime(2025, 3, 12, 10, 0),
-        return_datetime=datetime(2025, 4, 12, 14, 30),
-        passengers=[Passenger(type="adult"), Passenger(type="youth", age=10)],
-    )
-    assert params["search"]["departure_datetime"] == "2025-03-12 10:00"
-    assert params["search"]["return_departure_datetime"] == "2025-04-12 14:30"
-    assert len(params["search"]["searches_passengers_attributes"]) == 2
+    assert "return_departure_datetime" not in params["search"]
 
 
 RAW_SEARCH_RESPONSE = {
@@ -97,7 +83,6 @@ RAW_SEARCH_RESPONSE = {
     "complete": True,
     "route": {"origin_station": {"name": "Paris"}, "destination_station": {"name": "Brussels"}},
     "departure_datetime": "2025-03-12 10:00",
-    "return_departure_datetime": None,
     "expiration_time_left": 1800,
     "is_beginning": True,
     "is_ending": False,
